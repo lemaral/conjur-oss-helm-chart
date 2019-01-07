@@ -32,7 +32,7 @@ Create chart name and version as used by the chart label.
 {{- end -}}
 
 {{/*
-Generate certificates for custom-metrics api server 
+Generate CA and end user certificate for NGINX
 */}}
 {{- define "conjur-oss.ssl-cert-gen" -}}
 {{- $altNames := .Values.ssl.altnames -}}
@@ -40,8 +40,10 @@ Generate certificates for custom-metrics api server
 {{- $altNames := append $altNames ( printf "%s.%s" (include "conjur-oss.fullname" .) .Release.Namespace ) -}}
 {{- $altNames := append $altNames ( printf "%s.%s.svc" (include "conjur-oss.fullname" .) .Release.Namespace ) -}}
 {{- $expiration := .Values.ssl.expiration | int -}}
-{{- $ca := genCA .Values.ssl.hostname $expiration -}}
-{{- $cert := genSignedCert .Values.ssl.hostname nil $altNames (.Values.ssl.expiration | int) $ca -}}
-tls.crt: {{ $cert.Cert | b64enc }}
-tls.key: {{ $cert.Key | b64enc }}
+{{- $ca := genCA "conjur-oss-ca" (.Values.ssl.expiration | int) -}}
+{{- $cert := genSignedCert .Values.ssl.hostname nil $altNames $expiration $ca -}}
+{{- $_ := set . "caCrt" ($ca.Cert | b64enc) }}
+{{- $_ := set . "caKey" ($ca.Key | b64enc) }}
+{{- $_ := set . "certCrt" ($cert.Cert | b64enc) }}
+{{- $_ := set . "certKey" ($cert.Key | b64enc) }}
 {{- end -}}
