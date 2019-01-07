@@ -36,6 +36,7 @@ Generate CA and end user certificate for NGINX
 */}}
 {{- define "conjur-oss.ssl-cert-gen" -}}
 {{- $altNames := .Values.ssl.altnames -}}
+{{- $altNames := append $altNames .Values.ssl.hostname -}}
 {{- $altNames := append $altNames (include "conjur-oss.fullname" .) -}}
 {{- $altNames := append $altNames ( printf "%s.%s" (include "conjur-oss.fullname" .) .Release.Namespace ) -}}
 {{- $altNames := append $altNames ( printf "%s.%s.svc" (include "conjur-oss.fullname" .) .Release.Namespace ) -}}
@@ -44,6 +45,6 @@ Generate CA and end user certificate for NGINX
 {{- $cert := genSignedCert .Values.ssl.hostname nil $altNames $expiration $ca -}}
 {{- $_ := set . "caCrt" ($ca.Cert | b64enc) }}
 {{- $_ := set . "caKey" ($ca.Key | b64enc) }}
-{{- $_ := set . "certCrt" ($cert.Cert | b64enc) }}
+{{- $_ := set . "certCrt" (printf "%s\n%s" $cert.Cert $ca.Cert | b64enc) }}
 {{- $_ := set . "certKey" ($cert.Key | b64enc) }}
 {{- end -}}
