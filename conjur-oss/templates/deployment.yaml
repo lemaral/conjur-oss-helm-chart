@@ -24,6 +24,7 @@ spec:
     metadata:
       labels: *AppConjurLabels
     spec:
+      serviceAccountName: {{ .Release.Name }}-conjur-oss
       volumes:
       - name: {{ .Release.Name }}-conjur-ssl-cert-volume
         secret:
@@ -129,6 +130,11 @@ spec:
           valueFrom:
             secretKeyRef:
               name: {{ .Release.Name }}-conjur-database-url
+              key: key
+        - name: CONJUR_ACCOUNT
+          valueFrom:
+            secretKeyRef:
+              name: {{ .Values.account }}
               key: key
         resources:
 {{ toYaml .Values.resources | indent 12 }}
